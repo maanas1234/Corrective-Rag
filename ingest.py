@@ -8,7 +8,7 @@ from langchain_openai import ChatOpenAI
 import os
 
 
-loader = DirectoryLoader('./data/notes', glob="**/*.md", loader_cls=TextLoader)
+loader = DirectoryLoader('./data/notes', glob="**/*.md", loader_cls=TextLoader,loader_kwargs={"autodetect_encoding": True})
 docs = loader.load()
 
 print(f"Length{len(docs)}")
