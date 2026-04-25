@@ -2,11 +2,28 @@ from langchain_classic.retrievers.multi_query import MultiQueryRetriever
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-import os
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough,RunnableLambda
 from dotenv import load_dotenv
+from langchain_community.chat_message_histories import ChatMessageHistory
+from query import prompt
+from langchain_core.prompts import ChatPromptTemplate
+import os
 
 load_dotenv()
 
+
+prompt = ChatPromptTemplate.from_template("""
+Answer the question using ONLY the context below.
+If the answer is not in the context, say "I don't know."
+(("placeholder", "{chat_history_messages}")
+Context:
+{context}
+
+Question: {question}
+
+Answer:
+""")
 
 
 llm = ChatOpenAI(
@@ -27,7 +44,19 @@ retriever_from_llm = MultiQueryRetriever.from_llm(
     llm=llm
 )
 
+chat_history_memory = ChatMessageHistory()
+def get_messages(x):
+    return chat_history_memory.messages
+
+
+
+chain = ({"context": retriever_from_llm,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
+
+
 check = retriever_from_llm.invoke("What will happen if we have AI driver?")
+
+
+
 for i, doc in enumerate(check, 1):
     print(f"\n📄 Document {i}")
     print("-" * 50)
