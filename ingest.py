@@ -5,6 +5,7 @@ from langchain_chroma import Chroma
 from openai import OpenAI
 from langchain_community.vectorstores import FAISS
 from langchain_openai import ChatOpenAI
+from query import prompt
 import os
 
 
@@ -18,6 +19,7 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_overlap=200,
     separators=["\n\n", "\n", ".", " ", ""]
 )
+
 
 embeddings=HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 chunks = splitter.split_documents(docs)

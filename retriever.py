@@ -9,21 +9,31 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from query import prompt
 from langchain_core.prompts import ChatPromptTemplate
 import os
+from sentence_transformers import CrossEncoder
 
 load_dotenv()
 
 
 prompt = ChatPromptTemplate.from_template("""
-Answer the question using ONLY the context below.
-If the answer is not in the context, say "I don't know."
-(("placeholder", "{chat_history_messages}")
-Context:
+You are a careful assistant. Use ONLY the provided context to answer.
+
+Rules:
+- Do not use outside knowledge.
+- If the context does not contain enough information to answer, reply exactly: I don't know.
+- Cite sources by adding (source: <source>) after each claim, using the document metadata 'source' when available.
+- If the context is long, synthesize it into a direct answer (no rambling).
+
+{chat_history_messages}
+
+Context (multiple retrieved passages):
 {context}
 
-Question: {question}
+Question:
+{question}
 
-Answer:
+Answer (grounded in context, with sources):
 """)
+
 
 
 llm = ChatOpenAI(
@@ -49,11 +59,7 @@ def get_messages(x):
     return chat_history_memory.messages
 
 
-
-chain = ({"context": retriever_from_llm,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
-
-
-check = retriever_from_llm.invoke("What will happen if we have AI driver?")
+check = retriever_from_llm.invoke("is suffering essential for humans?")
 
 
 
@@ -63,3 +69,18 @@ for i, doc in enumerate(check, 1):
     print(doc.page_content)
 
 print(len(check))
+
+print(" ")
+print(" ")
+print(" ")
+print(" ")
+
+model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L6-v2')
+scores = model.predict([
+    ("How many people live in Berlin?", "Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers."),
+    ("How many people live in Berlin?", "Berlin is well known for its museums."),
+])
+
+chain = ({"context": retriever_from_llm,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
+final_result = chain.invoke("is suffering essential for humans?")
+print(final_result)
