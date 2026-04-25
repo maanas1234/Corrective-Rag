@@ -60,4 +60,4 @@ print(" ")
 
 
 result = chain.invoke("what if we have ai drivers?")
-print(result[:500])
+print(result)
