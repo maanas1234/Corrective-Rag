@@ -75,12 +75,16 @@ print(" ")
 print(" ")
 print(" ")
 
-model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L6-v2')
-scores = model.predict([
-    ("How many people live in Berlin?", "Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers."),
-    ("How many people live in Berlin?", "Berlin is well known for its museums."),
-])
+def rerank(query:str, docs, model, top_k:int = 4):
+    pairs = [(query, d.page_content)for d in docs]
+    scores =model.predict(pairs)
+    ranked = sorted(zip(docs,scores),key =lambda x:x[1],reverse=True)
+    return [d for d,_ in ranked[:top_k]]
 
-chain = ({"context": retriever_from_llm,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
-final_result = chain.invoke("is suffering essential for humans?")
+cross = CrossEncoder('cross-encoder/ms-marco-MiniLM-L6-v2')
+
+context_runnable = RunnableLambda(lambda q:rerank(q,retriever_from_llm.invoke(q),cross,top_k=4))
+
+chain = ({"context": context_runnable,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
+final_result = chain.invoke("what is the biggest problem in India?")
 print(final_result)
