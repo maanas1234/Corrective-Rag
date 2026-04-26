@@ -138,7 +138,7 @@ second-brain/vectorstore/
 
 ## 📄 License
 
-Add a license of your choice (MIT, Apache-2.0, etc.)
+Apache-2.0
 
 ---
 
