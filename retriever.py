@@ -1,3 +1,4 @@
+from __future__ import annotations
 from langchain_classic.retrievers.multi_query import MultiQueryRetriever
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -6,12 +7,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough,RunnableLambda
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import ChatMessageHistory
-from query import prompt
+#from query import prompt
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 import os
 from sentence_transformers import CrossEncoder
-from __future__ import annotations
+
 
 from typing import Iterable, Tuple, List
 
@@ -58,15 +59,16 @@ def build_vectorstore() -> FAISS:
 
 def build_base_retriever():
     vectorstore = build_vectorstore()
-    vectorstore.as_retriever(search_type="mmr",search_kwargs={"k":4,"fetch_k":7})
+    return vectorstore.as_retriever(search_type="mmr",search_kwargs={"k":4,"fetch_k":7})
 
-chat_history_memory = ChatMessageHistory()
+
 def get_messages(x):
+    chat_history_memory = ChatMessageHistory()
     return chat_history_memory.messages
 
 def build_retriever()->MultiQueryRetriever:
     base= build_base_retriever()
-    llm -= build_llm()
+    llm = build_llm()
     return MultiQueryRetriever.from_llm(retriever=base, llm=llm)
     
 
@@ -115,4 +117,4 @@ def build_reranker():
 def generate_answer(question:str, docs:list[Document])-> str:
     llm = build_llm()
     chain = prompt | llm | StrOutputParser()
-    return chain.invoke({"context": format_docs(docs), "question": question})
+    return chain.invoke({"context": format_docs(docs), "question": question,"chat_history_messages":get_messages()})

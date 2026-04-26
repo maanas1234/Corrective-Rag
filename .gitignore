@@ -1,3 +1,5 @@
 venv
 data
 vectorstore
+__pycache__/
+*.pyc

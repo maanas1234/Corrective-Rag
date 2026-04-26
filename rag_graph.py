@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from functools import lru_cache
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
@@ -100,8 +99,9 @@ graph.add_conditional_edges(
 )
 graph.add_edge("web_search_node","rerank_node")
 graph.add_edge("rerank_node","generate_node")
+graph.add_edge("generate_node", END)
 
 graph.set_entry_point("retrieve_node")
 app=graph.compile()
-result = app.invoke({"question": "your question", "documents": [], "generation": "", "web_search": False})
+result = app.invoke({"question": "What is the purpose of life?", "documents": [], "generation": "", "web_search": False})
 print(f" Answer: {result}")

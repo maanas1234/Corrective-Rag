@@ -1,10 +1,9 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
-import os
+from langchain_core.output_parsers import StrOutputParser
 
-class gradeDoc(BaseModel):
-    score:str
+import os
 
 llm = ChatOpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -12,18 +11,28 @@ llm = ChatOpenAI(
     model="openai/gpt-oss-120b:free"  # free tier model
 )
 
-structured_llm = llm.with_structured_output(gradeDoc)
+#structured_llm = llm.with_structured_output(gradeDoc)
 
 prompt = ChatPromptTemplate.from_template("""
 You are a relevance grader.
 Document: {document}
 Question: {question}
+Answer with a single word: yes or no. No punctuation
 Is this document relevant to answer the question? Answer 'yes' or 'no'.
 """)
 
-grader = prompt | structured_llm
+grader = prompt | llm | StrOutputParser()
 
-def grade_doc(question:str, doc) -> str:
-    result = grader.invoke({"question": question, "document": doc.page_content})
-    return result.score
+from langchain_core.output_parsers import StrOutputParser
+grader = prompt | llm | StrOutputParser()
+
+def grade_doc(question: str, doc) -> str:
+    text = grader.invoke(
+        {"question": question, "document": doc.page_content}
+    ).strip().lower()
+
+    first = text.split()[0] if text else ""
+    if first in ("yes", "no"):
+        return first
+    return "no"
 
