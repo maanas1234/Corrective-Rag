@@ -85,6 +85,8 @@ cross = CrossEncoder('cross-encoder/ms-marco-MiniLM-L6-v2')
 
 context_runnable = RunnableLambda(lambda q:rerank(q,retriever_from_llm.invoke(q),cross,top_k=4))
 
+
 chain = ({"context": context_runnable,"question":RunnablePassthrough(),"chat_history_messages":RunnableLambda(get_messages)} | prompt |  llm | StrOutputParser())
-final_result = chain.invoke("what is the biggest problem in India?")
-print(final_result)
+def get_result(query:str):
+    final_result = chain.invoke(query)
+    return final_result
