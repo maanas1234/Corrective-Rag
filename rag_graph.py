@@ -1,6 +1,8 @@
 from grader import grade_doc
 from web_search import web_search
 from web_search import web_scrape
+from retriever import get_result
+from retriever import build_retriever
 from typing import TypedDict, List
 from langchain_core.documents import Document
 
@@ -21,4 +23,5 @@ def web_search_node(state):
     question = state['question']
     search_result = web_search(question,3)
     scraped_result = web_scrape(search_result)
-    state['documents'].append(scraped_result)
+    docs = state['documents']
+    docs.append(scraped_result)

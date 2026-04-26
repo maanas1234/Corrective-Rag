@@ -49,26 +49,28 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 vectorstore = FAISS.load_local("vectorstore",embeddings=embeddings,allow_dangerous_deserialization=True)
 base_retriver = vectorstore.as_retriever(search_type="mmr",search_kwargs={"k":4,"fetch_k":7})
 
+
+
 retriever_from_llm = MultiQueryRetriever.from_llm(
     retriever=base_retriver, 
     llm=llm
-)
+    )
 
 chat_history_memory = ChatMessageHistory()
 def get_messages(x):
     return chat_history_memory.messages
 
+def build_retriever(x:str):
+    retriever_from_llm.invoke(x)
 
-check = retriever_from_llm.invoke("is suffering essential for humans?")
 
 
+#for i, doc in enumerate(check, 1):
+ #   print(f"\n📄 Document {i}")
+  #  print("-" * 50)
+   # print(doc.page_content)
 
-for i, doc in enumerate(check, 1):
-    print(f"\n📄 Document {i}")
-    print("-" * 50)
-    print(doc.page_content)
-
-print(len(check))
+#print(len(check))
 
 print(" ")
 print(" ")
