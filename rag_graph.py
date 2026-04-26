@@ -122,3 +122,34 @@ def pretty_print(result: dict, max_snippet_chars: int = 250):
 
 
 pretty_print(result)
+
+# add near the bottom of rag_graph.py
+
+def build_app():
+    graph = StateGraph(GraphState)
+
+    graph.add_node("retrieve_node", retrieve_node)
+    graph.add_node("grade_node", grade_node)
+    graph.add_node("web_search_node", web_search_node)
+    graph.add_node("rerank_node", rerank_node)
+    graph.add_node("generate_node", generate_node)
+
+    graph.add_edge("retrieve_node", "grade_node")
+    graph.add_conditional_edges(
+        "grade_node",
+        route_after_grade,
+        {"web_search_node": "web_search_node", "rerank_node": "rerank_node"},
+    )
+    graph.add_edge("web_search_node", "rerank_node")
+    graph.add_edge("rerank_node", "generate_node")
+    graph.add_edge("generate_node", END)
+
+    graph.set_entry_point("retrieve_node")
+    return graph.compile()
+
+
+if __name__ == "__main__":
+    app = build_app()
+    result = app.invoke({"question": "test", "documents": [], "generation": "", "web_search": False})
+    pretty_print(result)
+

@@ -81,11 +81,6 @@ def build_retriever()->MultiQueryRetriever:
 
 #print(len(check))
 
-print(" ")
-print(" ")
-print(" ")
-print(" ")
-
 def rerank_with_scores(
     question: str,
     docs: List[Document],
