@@ -66,13 +66,17 @@ def grade_node(state: GraphState):
     return {"documents": kept_docs, "web_search": go_web}
 
 
-def web_search_node(state):
+def web_search_node(state:GraphState):
     question = state['question']
     search_result = web_search(question,3)
     scraped_result = web_scrape(search_result)
     docs = state['documents']
     docs.append(scraped_result)
-    return {"doocument":docs}
+    return {"documents":docs}
+
+def route_after_grade(state: GraphState) -> str:
+    return "web_search_node" if state["web_search"] else "rerank_node"
+
 
 
 graph = StateGraph(GraphState)
@@ -85,3 +89,19 @@ graph.add_node("generate_node",generate_node)
 
 
 
+graph.add_edge("retrieve_node","grade_node")
+graph.add_conditional_edges(
+    "grade_node",
+    route_after_grade,
+    {
+        "web_search_node": "web_search_node",
+        "rerank_node": "rerank_node",
+    },
+)
+graph.add_edge("web_search_node","rerank_node")
+graph.add_edge("rerank_node","generate_node")
+
+graph.set_entry_point("retrieve_node")
+app=graph.compile()
+result = app.invoke({"question": "your question", "documents": [], "generation": "", "web_search": False})
+print(f" Answer: {result}")
