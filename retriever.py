@@ -62,7 +62,7 @@ def build_base_retriever():
     return vectorstore.as_retriever(search_type="mmr",search_kwargs={"k":4,"fetch_k":7})
 
 
-def get_messages(x):
+def get_messages():
     chat_history_memory = ChatMessageHistory()
     return chat_history_memory.messages
 

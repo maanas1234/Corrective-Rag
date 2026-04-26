@@ -104,4 +104,21 @@ graph.add_edge("generate_node", END)
 graph.set_entry_point("retrieve_node")
 app=graph.compile()
 result = app.invoke({"question": "What is the purpose of life?", "documents": [], "generation": "", "web_search": False})
-print(f" Answer: {result}")
+def pretty_print(result: dict, max_snippet_chars: int = 250):
+    print("\n" + "=" * 80)
+    print("Q:", result["question"])
+    print("-" * 80)
+    print("A:", result["generation"].strip())
+    print("-" * 80)
+
+    docs = result.get("documents", [])
+    print(f"Sources ({len(docs)} chunks):")
+    for i, d in enumerate(docs, 1):
+        src = d.metadata.get("source", "unknown")
+        snippet = d.page_content.replace("\n", " ").strip()[:max_snippet_chars]
+        print(f"{i}. {src}")
+        print(f"   {snippet}...")
+    print("=" * 80 + "\n")
+
+
+pretty_print(result)
